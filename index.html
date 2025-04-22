@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>TXT 轉 EPUB（EPUB 3 + 簡轉繁）</title>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+  <script type="module" src="main.js"></script>
+  <style>
+    textarea, input[type="text"] {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>TXT 轉 EPUB 工具</h1>
+
+  <label>📄 上傳 TXT 檔案：</label><br>
+  <input type="file" id="txtFile" accept=".txt"><br><br>
+
+  <label>🧠 請輸入章節關鍵字正則（每行一條 pattern）：</label><br>
+  <textarea id="chapterPatterns" rows="5">(\d)+[章卷話]
+第[一二三四五六七八九十千百零兩]+[章卷話]
+序章</textarea><br>
+
+  <label>📝 請輸入輸出 EPUB 檔名（不含副檔名）：</label><br>
+  <input type="text" id="outputName" placeholder="例如：我的小說"><br>
+
+  <button id="convertBtn">轉換成 EPUB</button>
+</body>
+</html>
