@@ -9,25 +9,49 @@
   <style>
     textarea, input[type="text"] {
       width: 100%;
+      
       max-width: 600px;
       margin-bottom: 1em;
+    }
+    #patternInput {
+      height: 5em;
     }
   </style>
 </head>
 <body>
   <h1>TXT 轉 EPUB 工具</h1>
 
+  <!-- 章節關鍵字輸入欄位 -->
+  <label>章節正則（每行一種）：</label><br>
+  <textarea id="patternInput" rows="3">(\d)+[章卷話]
+    第[一二三四五六七八九十千百零兩]+[章卷話]
+    序章</textarea><br>
+
+  <!-- 最大章節長度 -->
+  <label>章節最長長度：</label><br>
+  <input type="number" id="maxTitleLength" value="15" /><br>
+
+  <!-- EPUB 書名 -->
+  <label>書名：</label><br>
+  <input type="text" id="titleInput" value="未命名作品" /><br>
+
+  <!-- 輸出檔名 -->
+  <label>輸出檔名：</label><br>
+  <input type="text" id="fileNameInput" value="output.epub" /><br>
+
+  <!-- 上傳檔案 -->
   <label>📄 上傳 TXT 檔案：</label><br>
-  <input type="file" id="txtFile" accept=".txt"><br><br>
+  <input type="file" id="fileInput" accept=".txt" /><br>
 
-  <label>🧠 請輸入章節關鍵字正則（每行一條 pattern）：</label><br>
-  <textarea id="chapterPatterns" rows="5">(\d)+[章卷話]
-第[一二三四五六七八九十千百零兩]+[章卷話]
-序章</textarea><br>
+  <!-- 預覽章節 -->
+  <div>
+    <h3>擷取章節預覽：</h3>
+    <pre id="chapterPreview" style="height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #f9f9f9;"></pre>
+  </div>
+  
 
-  <label>📝 請輸入輸出 EPUB 檔名（不含副檔名）：</label><br>
-  <input type="text" id="outputName" placeholder="例如：我的小說"><br>
+  <!-- 產出 EPUB 按鈕 -->
+  <button id="generateBtn">輸出 EPUB</button>
 
-  <button id="convertBtn">轉換成 EPUB</button>
 </body>
 </html>

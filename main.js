@@ -1,57 +1,87 @@
-import { EPUB } from "./epub.js";
+// main.js
+import { EPUB } from './epub.js';
 
-document.getElementById("convertBtn").addEventListener("click", async () => {
-  const fileInput = document.getElementById("txtFile");
-  const patterns = document.getElementById("chapterPatterns").value.trim().split("\n").map(p => p.trim());
-  const fileNameInput = document.getElementById("outputName").value.trim() || "output";
+const fileInput = document.getElementById("fileInput");
+const patternInput = document.getElementById("patternInput");
+const maxTitleLengthInput = document.getElementById("maxTitleLength");
+const titleInput = document.getElementById("titleInput");
+const fileNameInput = document.getElementById("fileNameInput");
+const chapterPreview = document.getElementById("chapterPreview");
+const generateBtn = document.getElementById("generateBtn");
 
-  if (!fileInput.files.length) {
-    alert("請選擇一個 TXT 檔案！");
-    return;
-  }
+let chapterTitles = [];
+let chapterContents = [];
 
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("patternInput").value = `(\d)+[章卷話]
+第[一二三四五六七八九十千百零兩]+[章卷話]
+序章`;
+  document.getElementById("maxTitleLength").value = 15;
+});
+
+fileInput.addEventListener("change", async function () {
   const file = fileInput.files[0];
+  if (!file) return;
+  fileNameInput.value = file.name.replace(/\.txt$/i, ".epub");
+
   const text = await file.text();
-
-  // 使用 opencc-js 進行簡轉繁
-  const converter = await OpenCC.Converter({ from: 'cn', to: 'tw' });
+  const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
   const convertedText = await converter(text);
+  parseChapters(convertedText);
+});
 
-  // 建立 EPUB 實例
-  const epub = new EPUB();
+generateBtn.addEventListener("click", function () {
+  const bookTitle = titleInput.value.trim() || "未命名作品";
+  const fileName = fileNameInput.value.trim() || "output.epub";
 
-  // 使用章節 pattern 分段
-  const chapterRegex = new RegExp(`(${patterns.join('|')})`, 'g');
-  const parts = convertedText.split(chapterRegex); // 包含章節標題與內容，交錯排列
+  const epub = new EPUB(bookTitle);
+  for (let i = 0; i < chapterTitles.length; i++) {
+    epub.add_chapter(chapterTitles[i], chapterContents[i]);
+  }
+  epub.generate(fileName);
+});
 
-  let currentTitle = null;
-  let buffer = "";
-  
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
-    if (part == null || part.trim() === "") continue;
-  
-    if (patterns.some(p => new RegExp(`^${p}$`).test(part.trim()))) {
-      if (currentTitle && buffer.trim()) {
-        epub.add_chapter(currentTitle, buffer.trim());
+function parseChapters(text) {
+  const lines = text.split(/\r?\n/);
+  const patterns = patternInput.value.split(/\r?\n/).map(p => new RegExp(p));
+  const maxLength = parseInt(maxTitleLengthInput.value) || 15;
+
+  chapterTitles = [];
+  chapterContents = [];
+
+  let currentTitle = "前言";
+  let buffer = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    let isMatch = false;
+
+    for (let pattern of patterns) {
+      if (pattern.test(line) && line.length <= maxLength) {
+        isMatch = true;
+        break;
       }
-      currentTitle = part.trim();
-      buffer = "";
+    }
+
+    if (isMatch) {
+      // 當 buffer 內有內容時，將內容加入章節，如果 buffer 只包含空行則跳過
+      if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
+        chapterContents.push(buffer.join("\n"));
+      }
+      buffer = [];
+      currentTitle = line;
+      chapterTitles.push(currentTitle);
     } else {
-      buffer += part;
+      buffer.push(line);
     }
   }
-  
-  if (currentTitle && buffer.trim()) {
-    epub.add_chapter(currentTitle, buffer.trim());
-  }
-  
 
-  // 產生並下載 EPUB
-  const zip = await epub.generate_epub();
-  const blob = await zip.generateAsync({ type: "blob" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${fileNameInput}.epub`;
-  a.click();
-});
+  // 如果 buffer 內有非空行內容，則加入最後的章節
+  if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
+    chapterContents.push(buffer.join("\n"));
+  }
+
+  // Preview update
+  chapterPreview.textContent = chapterTitles.map((t, i) => `${i + 1}. ${t}`).join("\n");
+}
+
