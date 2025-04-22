@@ -24,7 +24,8 @@ fileInput.addEventListener("change", async function () {
   if (!file) return;
   fileNameInput.value = file.name.replace(/\.txt$/i, ".epub");
 
-  const text = await file.text();
+  // 嘗試使用不同編碼讀取檔案
+  const text = await tryReadFile(file);
   const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
   const convertedText = await converter(text);
   parseChapters(convertedText);
@@ -85,3 +86,49 @@ function parseChapters(text) {
   chapterPreview.textContent = chapterTitles.map((t, i) => `${i + 1}. ${t}`).join("\n");
 }
 
+// 嘗試使用不同編碼讀取檔案的函數
+function tryReadFile(file) {
+  const encodings = ['utf-8', 'gbk', 'big5', 'utf-16', 'utf-16-le', 'utf-16-be'];
+  const reader = new FileReader();
+  let index = 0;
+
+  return new Promise((resolve, reject) => {
+    function readNextEncoding() {
+      if (index < encodings.length) {
+        const encoding = encodings[index];
+        console.log(`嘗試使用編碼: ${encoding}`); // 輸出當前嘗試的編碼
+
+        // 使用 FileReader 將檔案讀取為 ArrayBuffer
+        reader.onload = function (event) {
+          try {
+            const arrayBuffer = event.target.result;
+            const decoder = new TextDecoder(encoding, { fatal: true });
+            const content = decoder.decode(arrayBuffer); // 使用 TextDecoder 解碼內容
+
+            console.log(`成功使用編碼 ${encoding} 讀取檔案`); // 輸出成功訊息
+
+            resolve(content); // 成功讀取，返回內容
+          } catch (e) {
+            console.error(`讀取文件時出錯（${encoding}）: `, e); // 輸出錯誤訊息
+            // 解析錯誤，繼續嘗試下一個編碼
+            index++;
+            readNextEncoding();
+          }
+        };
+        reader.onerror = function (e) {
+          console.error(`讀取文件錯誤（${encoding}）: `, e); // 輸出錯誤訊息
+          // 讀取錯誤時，繼續嘗試下一個編碼
+          index++;
+          readNextEncoding();
+        };
+
+        // 將檔案讀取為 ArrayBuffer
+        reader.readAsArrayBuffer(file);
+      } else {
+        reject('無法使用指定的編碼讀取檔案');
+      }
+    }
+
+    readNextEncoding();
+  });
+}
