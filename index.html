@@ -26,17 +26,23 @@
     </div>
 
     <div class="mb-3">
+      <label for="chapterCleanup" class="form-label">章節標題要刪除的關鍵字（如 ###）：</label>
+      <textarea id="chapterCleanup" class="form-control" rows="2"></textarea>
+    </div>
+    
+    <div class="mb-3">
       <label for="fileNameInput" class="form-label">輸出檔名：</label>
       <input type="text" id="fileNameInput" class="form-control" value="output.epub">
     </div>
-
+    
     <div class="mb-3">
       <label for="fileInput" class="form-label">📄 上傳 TXT 檔案：</label>
       <input type="file" id="fileInput" class="form-control" accept=".txt">
     </div>
-
+    
     <div class="mb-4">
       <h3 class="h5">擷取章節預覽：</h3>
+      <button id="refreshBtn" class="btn btn-primary">刷新章節預覽</button>
       <pre id="chapterPreview" class="form-control" style="height: 200px; overflow-y: auto; background: #f9f9f9;"></pre>
     </div>
 

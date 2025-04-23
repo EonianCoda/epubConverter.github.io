@@ -6,10 +6,12 @@ const patternInput = document.getElementById("patternInput");
 const maxTitleLengthInput = document.getElementById("maxTitleLength");
 const fileNameInput = document.getElementById("fileNameInput");
 const chapterPreview = document.getElementById("chapterPreview");
+const chapterCleanup = document.getElementById("chapterCleanup"); // 新增刪除關鍵字輸入框
 const generateBtn = document.getElementById("generateBtn");
 
 let chapterTitles = [];
 let chapterContents = [];
+let rawText = "";
 
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("patternInput").value = `(\\d)+[章卷話]
@@ -26,14 +28,20 @@ fileInput.addEventListener("change", async function () {
   // 嘗試使用不同編碼讀取檔案
   const text = await tryReadFile(file);
   const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
-  const convertedText = await converter(text);
-  parseChapters(convertedText);
+  rawText = await converter(text);
+  parseChapters(rawText);
 });
+
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", function () {
+    if (rawText) parseChapters(rawText);
+  });
+}
 
 generateBtn.addEventListener("click", function () {
   const fileName = fileNameInput.value.trim() || "output.epub";
 
-  const epub = new EPUB(bookTitle);
+  const epub = new EPUB();
   for (let i = 0; i < chapterTitles.length; i++) {
     epub.add_chapter(chapterTitles[i], chapterContents[i]);
   }
@@ -44,6 +52,10 @@ function parseChapters(text) {
   const lines = text.split(/\r?\n/);
   const patterns = patternInput.value.split(/\r?\n/).map(p => new RegExp(p));
   const maxLength = parseInt(maxTitleLengthInput.value) || 15;
+  const keywordsToRemove = chapterCleanup.value
+    .split(/\r?\n/)
+    .map(s => s.trim())
+    .filter(Boolean);
 
   chapterTitles = [];
   chapterContents = [];
@@ -63,28 +75,31 @@ function parseChapters(text) {
     }
 
     if (isMatch) {
-      // 當 buffer 內有內容時，將內容加入章節，如果 buffer 只包含空行則跳過
       if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
         chapterContents.push(buffer.join("\n"));
       }
       buffer = [];
       currentTitle = line;
+
+      for (const keyword of keywordsToRemove) {
+        if (currentTitle.includes(keyword)) {
+          currentTitle = currentTitle.replaceAll(keyword, "");
+        }
+      }
+
       chapterTitles.push(currentTitle);
     } else {
       buffer.push(line);
     }
   }
 
-  // 如果 buffer 內有非空行內容，則加入最後的章節
   if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
     chapterContents.push(buffer.join("\n"));
   }
 
-  // Preview update
   chapterPreview.textContent = chapterTitles.map((t, i) => `${i + 1}. ${t}`).join("\n");
 }
 
-// 嘗試使用不同編碼讀取檔案的函數
 function tryReadFile(file) {
   const encodings = ['utf-8', 'gbk', 'big5', 'utf-16', 'utf-16-le', 'utf-16-be'];
   const reader = new FileReader();
@@ -114,13 +129,11 @@ function tryReadFile(file) {
           }
         };
         reader.onerror = function (e) {
-          console.error(`讀取文件錯誤（${encoding}）: `, e); // 輸出錯誤訊息
-          // 讀取錯誤時，繼續嘗試下一個編碼
+          console.error(`讀取文件錯誤（${encoding}）: `, e);
           index++;
           readNextEncoding();
         };
 
-        // 將檔案讀取為 ArrayBuffer
         reader.readAsArrayBuffer(file);
       } else {
         reject('無法使用指定的編碼讀取檔案');
