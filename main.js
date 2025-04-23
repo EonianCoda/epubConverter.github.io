@@ -12,6 +12,8 @@ const generateBtn = document.getElementById("generateBtn");
 let chapterTitles = [];
 let chapterContents = [];
 let rawText = "";
+let filteredIndices = [];
+let selectedChapterIndex = null; // 儲存目前選中的章節索引
 
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("patternInput").value = `(\\d)+[章卷話]
@@ -96,9 +98,65 @@ function parseChapters(text) {
   if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
     chapterContents.push(buffer.join("\n"));
   }
-
-  chapterPreview.textContent = chapterTitles.map((t, i) => `${i + 1}. ${t}`).join("\n");
+  
+  initChapterList();
 }
+
+function updateChapterPreview() {
+  const listContainer = document.getElementById("chapterList");
+  const contentViewer = document.getElementById("chapterContent");
+  listContainer.innerHTML = "";
+  contentViewer.textContent = "";
+
+  filteredIndices.forEach(i => {
+    const btn = document.createElement("button");
+    btn.textContent = `${i + 1}. ${chapterTitles[i]}`;
+    btn.className = "list-group-item list-group-item-action";
+    btn.dataset.index = i;
+
+    if (i === selectedChapterIndex) {
+      btn.classList.add("active");
+    }
+
+    btn.addEventListener("click", () => {
+      // 更新選中的索引與內容
+      selectedChapterIndex = i;
+      contentViewer.textContent = chapterContents[i];
+
+      // 移除所有高亮
+      document.querySelectorAll("#chapterList button").forEach(b => {
+        b.classList.remove("active");
+      });
+      // 新增目前的高亮
+      btn.classList.add("active");
+    });
+
+    listContainer.appendChild(btn);
+  });
+
+  // 若有已選中的章節，預設顯示內容
+  if (selectedChapterIndex !== null) {
+    contentViewer.textContent = chapterContents[selectedChapterIndex];
+  }
+}
+
+
+
+// 初始化 filteredIndices 並更新畫面
+function initChapterList() {
+  filteredIndices = chapterTitles.map((_, i) => i);
+  updateChapterPreview();
+}
+
+// 搜尋功能
+document.getElementById("searchChapterInput").addEventListener("input", function () {
+  const query = this.value.trim().toLowerCase();
+  filteredIndices = chapterTitles
+    .map((title, i) => ({ title, i }))
+    .filter(obj => obj.title.toLowerCase().includes(query))
+    .map(obj => obj.i);
+  updateChapterPreview();
+});
 
 function tryReadFile(file) {
   const encodings = ['utf-8', 'gbk', 'big5', 'utf-16', 'utf-16-le', 'utf-16-be'];

@@ -42,10 +42,27 @@
     
     <div class="mb-4">
       <h3 class="h5">擷取章節預覽：</h3>
-      <button id="refreshBtn" class="btn btn-primary">刷新章節預覽</button>
-      <pre id="chapterPreview" class="form-control" style="height: 200px; overflow-y: auto; background: #f9f9f9;"></pre>
+      <button id="refreshBtn" class="btn btn-primary mb-2">刷新章節預覽</button>
+    
+      <!-- 新增搜尋章節 -->
+      <div class="mb-2">
+        <input type="text" id="searchChapterInput" class="form-control" placeholder="🔍 搜尋章節...">
+      </div>
+    
+      <div class="row">
+        <!-- 左側章節列表 -->
+        <div class="col-md-4" style="height: 300px; overflow-y: auto; background: #f9f9f9; border: 1px solid #ccc;">
+          <div id="chapterList" class="list-group"></div>
+        </div>
+        
+        <!-- 右側章節內容 -->
+        <div class="col-md-8" style="height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ccc;">
+          <div id="chapterContent" class="p-3" style="white-space: pre-wrap;"></div>
+        </div>
+      </div>
     </div>
-
+    
+    
     <button id="generateBtn" class="btn btn-primary">輸出 EPUB</button>
   </div>
 </body>
