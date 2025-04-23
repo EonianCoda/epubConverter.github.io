@@ -4,7 +4,6 @@ import { EPUB } from './epub.js';
 const fileInput = document.getElementById("fileInput");
 const patternInput = document.getElementById("patternInput");
 const maxTitleLengthInput = document.getElementById("maxTitleLength");
-const titleInput = document.getElementById("titleInput");
 const fileNameInput = document.getElementById("fileNameInput");
 const chapterPreview = document.getElementById("chapterPreview");
 const generateBtn = document.getElementById("generateBtn");
@@ -13,10 +12,10 @@ let chapterTitles = [];
 let chapterContents = [];
 
 document.addEventListener("DOMContentLoaded", function () {
-  document.getElementById("patternInput").value = `(\d)+[章卷話]
+  document.getElementById("patternInput").value = `(\\d)+[章卷話]
 第[一二三四五六七八九十千百零兩]+[章卷話]
 序章`;
-  document.getElementById("maxTitleLength").value = 15;
+  document.getElementById("maxTitleLength").value = 35;
 });
 
 fileInput.addEventListener("change", async function () {
@@ -32,7 +31,6 @@ fileInput.addEventListener("change", async function () {
 });
 
 generateBtn.addEventListener("click", function () {
-  const bookTitle = titleInput.value.trim() || "未命名作品";
   const fileName = fileNameInput.value.trim() || "output.epub";
 
   const epub = new EPUB(bookTitle);

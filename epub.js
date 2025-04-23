@@ -2,8 +2,7 @@
 import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 
 export class EPUB {
-  constructor(title = "未命名作品") {
-    this.title = title;
+  constructor() {
     this.zip = new JSZip();
     this.chapters = [];
   }
