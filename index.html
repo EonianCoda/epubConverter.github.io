@@ -3,55 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <title>TXT 轉 EPUB（EPUB 3 + 簡轉繁）</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
   <script type="module" src="main.js"></script>
-  <style>
-    textarea, input[type="text"] {
-      width: 100%;
-      
-      max-width: 600px;
-      margin-bottom: 1em;
-    }
-    #patternInput {
-      height: 5em;
-    }
-  </style>
 </head>
-<body>
-  <h1>TXT 轉 EPUB 工具</h1>
+<body class="bg-light py-5">
+  <div class="container">
+    <h1 class="mb-4">TXT 轉 EPUB 工具</h1>
 
-  <!-- 章節關鍵字輸入欄位 -->
-  <label>章節正則（每行一種）：</label><br>
-  <textarea id="patternInput" rows="3">(\d)+[章卷話]
-    第[一二三四五六七八九十千百零兩]+[章卷話]
-    序章</textarea><br>
+    <!-- 表單區塊 -->
+    <div class="mb-3">
+      <label for="patternInput" class="form-label">章節正則（每行一種）：</label>
+      <textarea id="patternInput" class="form-control" rows="3">(\d)+[章卷話]
+第[一二三四五六七八九十千百零兩]+[章卷話]
+序章</textarea>
+    </div>
 
-  <!-- 最大章節長度 -->
-  <label>章節最長長度：</label><br>
-  <input type="number" id="maxTitleLength" value="15" /><br>
+    <div class="mb-3">
+      <label for="maxTitleLength" class="form-label">章節最長長度：</label>
+      <input type="number" id="maxTitleLength" class="form-control" value="15">
+    </div>
 
-  <!-- EPUB 書名 -->
-  <label>書名：</label><br>
-  <input type="text" id="titleInput" value="未命名作品" /><br>
+    <div class="mb-3">
+      <label for="titleInput" class="form-label">書名：</label>
+      <input type="text" id="titleInput" class="form-control" value="未命名作品">
+    </div>
 
-  <!-- 輸出檔名 -->
-  <label>輸出檔名：</label><br>
-  <input type="text" id="fileNameInput" value="output.epub" /><br>
+    <div class="mb-3">
+      <label for="fileNameInput" class="form-label">輸出檔名：</label>
+      <input type="text" id="fileNameInput" class="form-control" value="output.epub">
+    </div>
 
-  <!-- 上傳檔案 -->
-  <label>📄 上傳 TXT 檔案：</label><br>
-  <input type="file" id="fileInput" accept=".txt" /><br>
+    <div class="mb-3">
+      <label for="fileInput" class="form-label">📄 上傳 TXT 檔案：</label>
+      <input type="file" id="fileInput" class="form-control" accept=".txt">
+    </div>
 
-  <!-- 預覽章節 -->
-  <div>
-    <h3>擷取章節預覽：</h3>
-    <pre id="chapterPreview" style="height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #f9f9f9;"></pre>
+    <div class="mb-4">
+      <h3 class="h5">擷取章節預覽：</h3>
+      <pre id="chapterPreview" class="form-control" style="height: 200px; overflow-y: auto; background: #f9f9f9;"></pre>
+    </div>
+
+    <button id="generateBtn" class="btn btn-primary">輸出 EPUB</button>
   </div>
-  
-
-  <!-- 產出 EPUB 按鈕 -->
-  <button id="generateBtn">輸出 EPUB</button>
-
 </body>
 </html>
