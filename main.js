@@ -5,7 +5,6 @@ const fileInput = document.getElementById("fileInput");
 const patternInput = document.getElementById("patternInput");
 const maxTitleLengthInput = document.getElementById("maxTitleLength");
 const fileNameInput = document.getElementById("fileNameInput");
-const chapterPreview = document.getElementById("chapterPreview");
 const chapterCleanup = document.getElementById("chapterCleanup"); // 新增刪除關鍵字輸入框
 const generateBtn = document.getElementById("generateBtn");
 
@@ -53,7 +52,7 @@ generateBtn.addEventListener("click", function () {
 function parseChapters(text) {
   const lines = text.split(/\r?\n/);
   const patterns = patternInput.value.split(/\r?\n/).map(p => new RegExp(p));
-  const maxLength = parseInt(maxTitleLengthInput.value) || 15;
+  const maxLength = parseInt(maxTitleLengthInput.value) || 35;
   const keywordsToRemove = chapterCleanup.value
     .split(/\r?\n/)
     .map(s => s.trim())
@@ -139,8 +138,6 @@ function updateChapterPreview() {
     contentViewer.textContent = chapterContents[selectedChapterIndex];
   }
 }
-
-
 
 // 初始化 filteredIndices 並更新畫面
 function initChapterList() {
