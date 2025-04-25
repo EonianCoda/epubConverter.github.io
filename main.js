@@ -1,56 +1,107 @@
-// main.js
 import { EPUB } from './epub.js';
-
+import { DEFAULT_ENCODINGS, DEFAULT_PATTERNS, DEFAULT_MAX_TITLE_LENGTH } from './constant.js';
 const fileInput = document.getElementById("fileInput");
+const fileSelector = document.getElementById("fileSelector");
 const patternInput = document.getElementById("patternInput");
 const maxTitleLengthInput = document.getElementById("maxTitleLength");
-const fileNameInput = document.getElementById("fileNameInput");
-const chapterCleanup = document.getElementById("chapterCleanup"); // 新增刪除關鍵字輸入框
+const chapterCleanup = document.getElementById("chapterCleanup");
+const refreshBtn = document.getElementById("refreshBtn");
 const generateBtn = document.getElementById("generateBtn");
+const fileNameContainer = document.getElementById("fileNameInput"); // 將其視為容器
 
-let chapterTitles = [];
-let chapterContents = [];
-let rawText = "";
-let filteredIndices = [];
-let selectedChapterIndex = null; // 儲存目前選中的章節索引
+let files = [];
+let fileDataMap = new Map(); // 每個檔案對應章節與設定
 
-document.addEventListener("DOMContentLoaded", function () {
-  document.getElementById("patternInput").value = `(\\d)+[章卷話]
-第[一二三四五六七八九十千百零兩]+[章卷話]
-序章`;
-  document.getElementById("maxTitleLength").value = 35;
+document.addEventListener("DOMContentLoaded", () => {
+  patternInput.value = DEFAULT_PATTERNS;
+  maxTitleLengthInput.value = DEFAULT_MAX_TITLE_LENGTH;
 });
 
-fileInput.addEventListener("change", async function () {
-  const file = fileInput.files[0];
-  if (!file) return;
-  fileNameInput.value = file.name.replace(/\.txt$/i, ".epub");
+// ⬆️ 當使用者上傳多個檔案
+fileInput.addEventListener("change", async () => {
+  files = Array.from(fileInput.files);
+  fileSelector.innerHTML = `<option selected disabled>請選擇檔案</option>`;
+  fileNameContainer.innerHTML = "";
 
-  // 嘗試使用不同編碼讀取檔案
-  const text = await tryReadFile(file);
-  const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
-  rawText = await converter(text);
-  parseChapters(rawText);
-});
+  fileDataMap.clear();
+  for (const file of files) {
+    const text = await tryReadFile(file);
+    const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
+    const convertedText = await converter(text);
+    const baseName = file.name.replace(/\.txt$/i, "");
 
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", function () {
-    if (rawText) parseChapters(rawText);
-  });
-}
+    fileDataMap.set(file.name, {
+      rawText: convertedText,
+      chapterTitles: [],
+      chapterContents: [],
+      outputName: `${baseName}.epub`
+    });
 
-generateBtn.addEventListener("click", function () {
-  const fileName = fileNameInput.value.trim() || "output.epub";
+    const option = document.createElement("option");
+    option.value = file.name;
+    option.textContent = file.name;
+    fileSelector.appendChild(option);
 
-  const epub = new EPUB();
-  for (let i = 0; i < chapterTitles.length; i++) {
-    epub.add_chapter(chapterTitles[i], chapterContents[i]);
+    const group = document.createElement("div");
+    group.className = "d-flex align-items-center mb-2 gap-2";
+
+    const label = document.createElement("span");
+    label.textContent = file.name;
+    label.className = "badge bg-secondary";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "form-control";
+    input.value = `${baseName}.epub`;
+    input.dataset.filename = file.name;
+
+    input.addEventListener("input", () => {
+      fileDataMap.get(file.name).outputName = input.value.trim();
+    });
+
+    group.appendChild(label);
+    group.appendChild(input);
+    fileNameContainer.appendChild(group);
+
+    parseChapters(fileDataMap.get(file.name));
   }
-  epub.generate(fileName);
+  fileSelector.value = files[0].name; // 預設選擇第一個檔案
+  const firstFileData = fileDataMap.get(files[0].name);
+  if (firstFileData) {
+    initChapterList(firstFileData);
+  }
 });
 
-function parseChapters(text) {
-  const lines = text.split(/\r?\n/);
+// ⬇️ 檔案切換下拉選單
+fileSelector.addEventListener("change", () => {
+  const selectedFile = fileSelector.value;
+  const fileData = fileDataMap.get(selectedFile);
+  if (!fileData) return;
+  parseChapters(fileData);
+  initChapterList(fileData);
+});
+
+refreshBtn.addEventListener("click", () => {
+  const selectedFile = fileSelector.value;
+  const fileData = fileDataMap.get(selectedFile);
+  if (fileData) {
+    parseChapters(fileData);
+    initChapterList(fileData);
+  }
+});
+
+generateBtn.addEventListener("click", () => {
+  for (const [filename, data] of fileDataMap.entries()) {
+    const epub = new EPUB();
+    for (let i = 0; i < data.chapterTitles.length; i++) {
+      epub.add_chapter(data.chapterTitles[i], data.chapterContents[i]);
+    }
+    epub.generate(data.outputName);
+  }
+});
+
+function parseChapters(data) {
+  const lines = data.rawText.split(/\r?\n/);
   const patterns = patternInput.value.split(/\r?\n/).map(p => new RegExp(p));
   const maxLength = parseInt(maxTitleLengthInput.value) || 35;
   const keywordsToRemove = chapterCleanup.value
@@ -58,143 +109,102 @@ function parseChapters(text) {
     .map(s => s.trim())
     .filter(Boolean);
 
-  chapterTitles = [];
-  chapterContents = [];
+  data.chapterTitles = [];
+  data.chapterContents = [];
 
   let currentTitle = "前言";
   let buffer = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    let isMatch = false;
-
-    for (let pattern of patterns) {
-      if (pattern.test(line) && line.length <= maxLength) {
-        isMatch = true;
-        break;
-      }
-    }
+    let isMatch = patterns.some(pat => pat.test(line) && line.length <= maxLength);
 
     if (isMatch) {
-      if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
-        chapterContents.push(buffer.join("\n"));
+      if (buffer.some(line => line.trim())) {
+        data.chapterContents.push(buffer.join("\n"));
       }
       buffer = [];
       currentTitle = line;
 
       for (const keyword of keywordsToRemove) {
-        if (currentTitle.includes(keyword)) {
-          currentTitle = currentTitle.replaceAll(keyword, "");
-        }
+        currentTitle = currentTitle.replaceAll(keyword, "");
       }
 
-      chapterTitles.push(currentTitle);
+      data.chapterTitles.push(currentTitle);
     } else {
       buffer.push(line);
     }
   }
 
-  if (buffer.length > 0 && buffer.some(line => line.trim() !== "")) {
-    chapterContents.push(buffer.join("\n"));
+  if (buffer.some(line => line.trim())) {
+    data.chapterContents.push(buffer.join("\n"));
   }
-  
-  initChapterList();
 }
 
-function updateChapterPreview() {
+function initChapterList(data) {
   const listContainer = document.getElementById("chapterList");
   const contentViewer = document.getElementById("chapterContent");
+  const searchInput = document.getElementById("searchChapterInput");
+
   listContainer.innerHTML = "";
   contentViewer.textContent = "";
+  let filteredIndices = data.chapterTitles.map((_, i) => i);
 
-  filteredIndices.forEach(i => {
-    const btn = document.createElement("button");
-    btn.textContent = `${i + 1}. ${chapterTitles[i]}`;
-    btn.className = "list-group-item list-group-item-action";
-    btn.dataset.index = i;
-
-    if (i === selectedChapterIndex) {
-      btn.classList.add("active");
-    }
-
-    btn.addEventListener("click", () => {
-      // 更新選中的索引與內容
-      selectedChapterIndex = i;
-      contentViewer.textContent = chapterContents[i];
-
-      // 移除所有高亮
-      document.querySelectorAll("#chapterList button").forEach(b => {
-        b.classList.remove("active");
+  function updateChapterPreview() {
+    listContainer.innerHTML = "";
+    contentViewer.textContent = "";
+    filteredIndices.forEach(i => {
+      const btn = document.createElement("button");
+      btn.textContent = `${i + 1}. ${data.chapterTitles[i]}`;
+      btn.className = "list-group-item list-group-item-action";
+      btn.addEventListener("click", () => {
+        contentViewer.textContent = data.chapterContents[i];
+        listContainer.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
       });
-      // 新增目前的高亮
-      btn.classList.add("active");
+      listContainer.appendChild(btn);
     });
+  }
 
-    listContainer.appendChild(btn);
+  searchInput.addEventListener("input", function () {
+    const query = this.value.trim().toLowerCase();
+    filteredIndices = data.chapterTitles
+      .map((title, i) => ({ title, i }))
+      .filter(obj => obj.title.toLowerCase().includes(query))
+      .map(obj => obj.i);
+    updateChapterPreview();
   });
 
-  // 若有已選中的章節，預設顯示內容
-  if (selectedChapterIndex !== null) {
-    contentViewer.textContent = chapterContents[selectedChapterIndex];
-  }
-}
-
-// 初始化 filteredIndices 並更新畫面
-function initChapterList() {
-  filteredIndices = chapterTitles.map((_, i) => i);
   updateChapterPreview();
 }
-
-// 搜尋功能
-document.getElementById("searchChapterInput").addEventListener("input", function () {
-  const query = this.value.trim().toLowerCase();
-  filteredIndices = chapterTitles
-    .map((title, i) => ({ title, i }))
-    .filter(obj => obj.title.toLowerCase().includes(query))
-    .map(obj => obj.i);
-  updateChapterPreview();
-});
 
 function tryReadFile(file) {
-  const encodings = ['utf-8', 'gbk', 'big5', 'utf-16', 'utf-16-le', 'utf-16-be'];
-  const reader = new FileReader();
   let index = 0;
+  const reader = new FileReader();
 
   return new Promise((resolve, reject) => {
     function readNextEncoding() {
-      if (index < encodings.length) {
-        const encoding = encodings[index];
-        console.log(`嘗試使用編碼: ${encoding}`); // 輸出當前嘗試的編碼
-
-        // 使用 FileReader 將檔案讀取為 ArrayBuffer
+      if (index < DEFAULT_ENCODINGS.length) {
+        const encoding = DEFAULT_ENCODINGS[index];
         reader.onload = function (event) {
           try {
             const arrayBuffer = event.target.result;
             const decoder = new TextDecoder(encoding, { fatal: true });
-            const content = decoder.decode(arrayBuffer); // 使用 TextDecoder 解碼內容
-
-            console.log(`成功使用編碼 ${encoding} 讀取檔案`); // 輸出成功訊息
-
-            resolve(content); // 成功讀取，返回內容
+            resolve(decoder.decode(arrayBuffer));
           } catch (e) {
-            console.error(`讀取文件時出錯（${encoding}）: `, e); // 輸出錯誤訊息
-            // 解析錯誤，繼續嘗試下一個編碼
             index++;
             readNextEncoding();
           }
         };
-        reader.onerror = function (e) {
-          console.error(`讀取文件錯誤（${encoding}）: `, e);
+        reader.onerror = () => {
           index++;
           readNextEncoding();
         };
-
         reader.readAsArrayBuffer(file);
       } else {
-        reject('無法使用指定的編碼讀取檔案');
+        reject("無法使用指定的編碼讀取檔案");
       }
     }
-
     readNextEncoding();
   });
 }

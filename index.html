@@ -12,89 +12,91 @@
 </head>
 
 <body class="bg-light d-flex flex-column min-vh-100">
-  <!-- 🔝 導覽列 Tabs -->
+
+  <!-- 導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
     <div class="container">
       <a class="navbar-brand" href="#">📘 TXT 轉 EPUB 工具</a>
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link active" href="#">轉檔功能</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">進階設定</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">關於</a>
-        </li>
-      </ul>
     </div>
   </nav>
 
   <div class="container flex-grow-1">
     <h1 class="mb-4">TXT 轉 EPUB 工具</h1>
 
-    <!-- 表單區塊 -->
-    <div class="mb-3">
-      <label for="patternInput" class="form-label">章節正則（每行一種）：</label>
-      <textarea id="patternInput" class="form-control" rows="3"></textarea>
-    </div>
+    <!-- 分頁切換 -->
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadTabContent" type="button" role="tab">上傳與預覽</button>
+      </li>
+    </ul>
 
-    <div class="mb-3">
-      <label for="maxTitleLength" class="form-label">章節最長長度：</label>
-      <input type="number" id="maxTitleLength" class="form-control" value="15">
-    </div>
+    <!-- 分頁內容 -->
+    <div class="tab-content" id="mainTabsContent">
 
-    <div class="mb-3">
-      <label for="chapterCleanup" class="form-label">章節標題要刪除的關鍵字（如 ###）：</label>
-      <textarea id="chapterCleanup" class="form-control" rows="2"></textarea>
-    </div>
-    
-    <div class="mb-3">
-      <label for="fileNameInput" class="form-label">輸出檔名：</label>
-      <input type="text" id="fileNameInput" class="form-control" value="output.epub">
-    </div>
-    
-    <div class="mb-3">
-      <label for="fileInput" class="form-label">📄 上傳 TXT 檔案：</label>
-      <input type="file" id="fileInput" class="form-control" accept=".txt">
-    </div>
-    
-    <div class="mb-4">
-      <h3 class="h5">擷取章節預覽：</h3>
-      <button id="refreshBtn" class="btn btn-primary mb-2">刷新章節預覽</button>
-    
-      <!-- 新增搜尋章節 -->
-      <div class="mb-2">
-        <input type="text" id="searchChapterInput" class="form-control" placeholder="🔍 搜尋章節...">
-      </div>
-    
-      <div class="row">
-        <!-- 左側章節列表 -->
-        <div class="col-md-4" style="height: 300px; overflow-y: auto; background: #f9f9f9; border: 1px solid #ccc;">
-          <div id="chapterList" class="list-group"></div>
+      <!-- 📄 上傳與預覽頁面 -->
+      <div class="tab-pane fade show active" id="uploadTabContent" role="tabpanel">
+        <div class="mb-3">
+          <label for="patternInput" class="form-label">章節正則（每行一種）：</label>
+          <textarea id="patternInput" class="form-control" rows="3"></textarea>
         </div>
-        
-        <!-- 右側章節內容 -->
-        <div class="col-md-8" style="height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ccc;">
-          <div id="chapterContent" class="p-3" style="white-space: pre-wrap;"></div>
+
+        <div class="mb-3">
+          <label for="maxTitleLength" class="form-label">章節最長長度：</label>
+          <input type="number" id="maxTitleLength" class="form-control" value="15">
         </div>
+
+        <div class="mb-3">
+          <label for="chapterCleanup" class="form-label">章節標題要刪除的關鍵字（如 ###）：</label>
+          <textarea id="chapterCleanup" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="fileInput" class="form-label">📄 上傳 TXT 檔案（可多選）：</label>
+          <input type="file" id="fileInput" class="form-control" accept=".txt" multiple>
+        </div>
+
+        <div class="mb-4">
+          <h3 class="h5">擷取章節預覽：</h3>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <button id="refreshBtn" class="btn btn-primary">刷新章節預覽</button>
+            <select id="fileSelector" class="form-select w-auto">
+              <option selected disabled>請選擇檔案</option>
+              <!-- JS 動態加入檔案選項 -->
+            </select>
+          </div>
+
+          <div class="mb-2">
+            <input type="text" id="searchChapterInput" class="form-control" placeholder="🔍 搜尋章節...">
+          </div>
+
+          <div class="row">
+            <div class="col-md-4" style="height: 300px; overflow-y: auto; background: #f9f9f9; border: 1px solid #ccc;">
+              <div id="chapterList" class="list-group"></div>
+            </div>
+            <div class="col-md-8" style="height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ccc;">
+              <div id="chapterContent" class="p-3" style="white-space: pre-wrap;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">輸出檔名設定：</label>
+          <div id="fileNameInput"></div>
+        </div>
+
+        <button id="generateBtn" class="btn btn-primary">輸出 EPUB</button>
       </div>
     </div>
-    
-    
-    <button id="generateBtn" class="btn btn-primary">輸出 EPUB</button>
   </div>
 
-  <!-- ⏬ 頁尾 Footer -->
+  <!-- 頁尾 -->
   <footer class="bg-dark text-white text-center py-3 mt-5">
     <div class="container">
-      <small>© 2025 TXT to EPUB 工具</small>
-      <br>
+      <small>© 2025 TXT to EPUB 工具 | 使用 Bootstrap 5 製作</small><br>
       <a href="https://github.com/EonianCoda/epubConverter.github.io" target="_blank" class="btn btn-outline-light btn-sm mt-2">
         🔗 前往 GitHub 專案
       </a>
     </div>
   </footer>
-
 </body>
 </html>
