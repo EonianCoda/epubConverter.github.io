@@ -1,0 +1,11 @@
+/* style.css */
+
+.sortable-ghost {
+    opacity: 0.6;
+    background-color: #ffeeba !important;
+  }
+  
+.draggable {
+cursor: move;
+}
+  

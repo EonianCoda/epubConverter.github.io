@@ -5,9 +5,11 @@
   <title>TXT 轉 EPUB（EPUB 3 + 簡轉繁）</title>
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script type="module" src="main.js"></script>
 </head>
 
@@ -46,7 +48,7 @@
         </div>
 
         <div class="mb-3">
-          <label for="chapterCleanup" class="form-label">章節標題要刪除的關鍵字（如 ###）：</label>
+          <label for="chapterCleanup" class="form-label">章節標題清理（關鍵字，每行一個）：</label>
           <textarea id="chapterCleanup" class="form-control" rows="2"></textarea>
         </div>
 
@@ -79,10 +81,40 @@
           </div>
         </div>
 
+        <!-- 壓縮與整併選項 -->
+        
+        <!-- 每個檔案的輸出檔名設定 -->
         <div class="mb-3">
-          <label class="form-label">輸出檔名設定：</label>
+          <label class="form-label">各檔案輸出名稱設定</label>
           <div id="fileNameInput"></div>
         </div>
+        
+        <div class="mb-3">
+          <!-- 第一列：兩個 checkbox -->
+          <div class="row">
+            <div class="col-auto">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="zipCheckbox">
+                <label class="form-check-label" for="zipCheckbox">輸出成壓縮檔 (.zip)</label>
+              </div>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="mergeCheckbox">
+                <label class="form-check-label" for="mergeCheckbox">整併為單一檔案 (.epub)</label>
+              </div>
+            </div>
+          </div>
+        
+          <!-- 第二列：對應的輸入欄位 -->
+          <div class="row mt-2">
+            <div class="col-md-6">
+              <input type="text" class="form-control mb-2" id="mergedNameInput"
+                placeholder="整併檔案名稱" style="display: none;">
+              <input type="text" class="form-control" id="zipNameInput"
+                placeholder="輸出壓縮檔案名稱" style="display: none;">
+            </div>
+          </div>
 
         <button id="generateBtn" class="btn btn-primary">輸出 EPUB</button>
       </div>
@@ -92,7 +124,7 @@
   <!-- 頁尾 -->
   <footer class="bg-dark text-white text-center py-3 mt-5">
     <div class="container">
-      <small>© 2025 TXT to EPUB 工具 | 使用 Bootstrap 5 製作</small><br>
+      <small>© 2025 TXT to EPUB 工具</small><br>
       <a href="https://github.com/EonianCoda/epubConverter.github.io" target="_blank" class="btn btn-outline-light btn-sm mt-2">
         🔗 前往 GitHub 專案
       </a>

@@ -24,6 +24,12 @@ export class EPUB {
     document.body.removeChild(link);
   }
 
+  async generateBlob(fileName = "output.epub") {
+    this.title = fileName.replace(/\.epub$/, "");
+    this.#generate_structure();
+    return await this.zip.generateAsync({ type: "blob" });
+  }
+
   #generate_structure() {
     this.zip.file("mimetype", "application/epub+zip");
     const META_INF = this.zip.folder("META-INF");
