@@ -13,7 +13,7 @@ const toggleBtn = document.getElementById("togglePreview");
 const previewSection = document.getElementById("previewSection");
 const toggleIcon = document.getElementById("toggleIcon");
 
-let isOpen = false; // 設定初始狀態為隱藏
+let isOpen = true;
 let files = [];
 let fileDataMap = new Map();
 let orderedFileNames = [];     // 儲存有序檔名
