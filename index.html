@@ -58,31 +58,38 @@
         </div>
 
         <div class="mb-4">
-          <h3 class="h5">擷取章節預覽：</h3>
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <button id="refreshBtn" class="btn btn-primary">刷新章節預覽</button>
-            <select id="fileSelector" class="form-select w-auto">
-              <option selected disabled>請選擇檔案</option>
-              <!-- JS 動態加入檔案選項 -->
-            </select>
-          </div>
-
-          <div class="mb-2">
-            <input type="text" id="searchChapterInput" class="form-control" placeholder="🔍 搜尋章節...">
-          </div>
-
-          <div class="row">
-            <div class="col-md-4" style="height: 300px; overflow-y: auto; background: #f9f9f9; border: 1px solid #ccc;">
-              <div id="chapterList" class="list-group"></div>
+          <h3 class="h5">
+            <a href="#" id="togglePreview" class="text-decoration-none" style="cursor: pointer;">
+              擷取章節預覽：<span id="toggleIcon">▼</span>
+            </a>
+          </h3>
+        
+          <div id="previewSection" style="display: none; overflow: hidden; transition: max-height 0.4s ease;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <button id="refreshBtn" class="btn btn-primary">刷新章節預覽</button>
+              <select id="fileSelector" class="form-select w-auto">
+                <option selected disabled>請選擇檔案</option>
+                <!-- JS 動態加入檔案選項 -->
+              </select>
             </div>
-            <div class="col-md-8" style="height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ccc;">
-              <div id="chapterContent" class="p-3" style="white-space: pre-wrap;"></div>
+        
+            <div class="mb-2">
+              <input type="text" id="searchChapterInput" class="form-control" placeholder="🔍 搜尋章節...">
+            </div>
+        
+            <div class="row">
+              <div class="col-md-4" style="height: 300px; overflow-y: auto; background: #f9f9f9; border: 1px solid #ccc;">
+                <div id="chapterList" class="list-group"></div>
+              </div>
+              <div class="col-md-8" style="height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ccc;">
+                <div id="chapterContent" class="p-3" style="white-space: pre-wrap;"></div>
+              </div>
             </div>
           </div>
         </div>
+        
 
         <!-- 壓縮與整併選項 -->
-        
         <!-- 每個檔案的輸出檔名設定 -->
         <div class="mb-3">
           <label class="form-label">各檔案輸出名稱設定</label>

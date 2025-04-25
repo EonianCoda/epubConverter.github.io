@@ -9,7 +9,11 @@ const chapterCleanup = document.getElementById("chapterCleanup");
 const refreshBtn = document.getElementById("refreshBtn");
 const generateBtn = document.getElementById("generateBtn");
 const fileNameContainer = document.getElementById("fileNameInput");
+const toggleBtn = document.getElementById("togglePreview");
+const previewSection = document.getElementById("previewSection");
+const toggleIcon = document.getElementById("toggleIcon");
 
+let isOpen = false; // 設定初始狀態為隱藏
 let files = [];
 let fileDataMap = new Map();
 let orderedFileNames = [];     // 儲存有序檔名
@@ -42,6 +46,24 @@ mergeCheckbox.addEventListener("change", () => {
   if (shouldMerge && zipCheckbox.checked) {
     zipCheckbox.checked = false;
     zipCheckbox.dispatchEvent(new Event("change"));
+  }
+});
+
+
+toggleBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  isOpen = !isOpen;
+  if (isOpen) {
+    previewSection.style.display = "block";
+    previewSection.style.maxHeight = previewSection.scrollHeight + "px";
+    toggleIcon.textContent = "▲";
+  } else {
+    previewSection.style.maxHeight = "0px";
+    toggleIcon.textContent = "▼";
+    // 延遲隱藏整個元素，等動畫結束
+    setTimeout(() => {
+      if (!isOpen) previewSection.style.display = "none";
+    }, 400);
   }
 });
 
@@ -87,6 +109,7 @@ fileInput.addEventListener("change", async () => {
     group.appendChild(input);
     fileNameContainer.appendChild(group);
 
+    appendFileSelectorOption(file.name);
     parseChapters(fileDataMap.get(file.name));
   }
 
@@ -117,6 +140,14 @@ function makeSortable(container) {
       files = newOrder;
     }
   });
+}
+
+// ➕ 加入檔案選單選項
+function appendFileSelectorOption(fileName) {
+  const option = document.createElement("option");
+  option.value = fileName;
+  option.textContent = fileName;
+  fileSelector.appendChild(option);
 }
 
 fileSelector.addEventListener("change", () => {
