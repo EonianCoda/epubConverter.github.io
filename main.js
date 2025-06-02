@@ -248,18 +248,19 @@ function parseChapters(data) {
     // Skip empty patterns
     let isMatch = (patterns.length == 0) ? false : patterns.some(pat => pat.test(line) && line.length <= maxLength);
     if (isMatch) {
-      if (buffer.some(line => line.trim())) {
-        data.chapterContents.push(buffer.join("\n"));
-      }
-      buffer = [];
-
       // 僅獲得符合模式的部分
       currentTitle = patterns.reduce((acc, pat) => {
         const match = line.match(pat);
         return match ? match[0] : acc;
       }, line.trim());
-      if (lastTitle && lastTitle === currentTitle) {
+      
+      if (lastTitle === currentTitle) {
         continue;
+      }
+
+      if (lastTitle != "" && buffer.some(line => line.trim())) {
+        data.chapterContents.push(buffer.join("\n"));
+        buffer = [];
       }
       lastTitle = currentTitle;
       for (const keyword of keywordsToRemove) {
@@ -267,7 +268,8 @@ function parseChapters(data) {
       }
 
       data.chapterTitles.push(currentTitle);
-    } else {
+    } 
+    else {
       buffer.push(line);
     }
   }
