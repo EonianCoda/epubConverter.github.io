@@ -35,7 +35,6 @@ zipCheckbox.addEventListener("change", () => {
 
 mergeCheckbox.addEventListener("change", () => {
   const shouldMerge = mergeCheckbox.checked;
-  // fileNameContainer.style.display = shouldMerge ? "none" : "block";
   // disable all file inputs if merge is selected
   fileNameContainer.querySelectorAll("input[type='text']").forEach(input => {
     input.disabled = shouldMerge ? true : false;
@@ -77,7 +76,9 @@ fileInput.addEventListener("change", async () => {
     const text = await tryReadFile(file);
     const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
     const convertedText = await converter(text);
-    const baseName = file.name.replace(/\.txt$/i, "");
+    let baseName = file.name.replace(/\.txt$/i, "");
+
+    baseName = await converter(baseName);
 
     fileDataMap.set(file.name, {
       rawText: convertedText,
@@ -239,8 +240,8 @@ function parseChapters(data) {
   data.chapterContents = [];
 
   let currentTitle = data.name;
+  let lastTitle = "";
   let buffer = [];
-
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
@@ -251,8 +252,16 @@ function parseChapters(data) {
         data.chapterContents.push(buffer.join("\n"));
       }
       buffer = [];
-      currentTitle = line;
 
+      // 僅獲得符合模式的部分
+      currentTitle = patterns.reduce((acc, pat) => {
+        const match = line.match(pat);
+        return match ? match[0] : acc;
+      }, line.trim());
+      if (lastTitle && lastTitle === currentTitle) {
+        continue;
+      }
+      lastTitle = currentTitle;
       for (const keyword of keywordsToRemove) {
         currentTitle = currentTitle.replaceAll(keyword, "");
       }
